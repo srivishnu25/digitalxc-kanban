@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Example Task",
+      "description": "First one",
+      "status": "To Do"
+    },
+    {
+      "id": "f2e1",
+      "title": "dfasdf",
+      "description": "sdsd",
+      "status": "Done"
+    },
+    {
+      "id": "41ea",
+      "title": "Project",
+      "description": "By this friday",
+      "status": "In Progress"
+    },
+    {
+      "id": "72d1",
+      "title": "Hey, It's done",
+      "description": "yup",
+      "status": "To Do"
+    }
+  ]
+}
