@@ -1,36 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Column from "./components/Column";
 import TaskForm from "./components/TaskForm";
+import { api } from "./utils/api";
 
 const columns = ["To Do", "In Progress", "Done"];
-const ENDPOINT = "https://67f8b2102466325443ed6e07.mockapi.io/api/todo/kanban";
 
 // --- API UTILS ---
-const api = {
-  get: async () => {
-    const res = await fetch(ENDPOINT);
-    if (!res.ok) throw new Error("Failed to fetch tasks");
-    return res.json();
-  },
-  post: async (data) => {
-    const res = await fetch(ENDPOINT, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Failed to add task");
-    return res.json();
-  },
-  update: async (id, data) => {
-    const res = await fetch(`${ENDPOINT}/${id}`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Failed to update task");
-    return res.json();
-  },
-};
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -42,25 +17,28 @@ function App() {
 
   const addTask = async (task) => {
     try {
-      const newTask = await api.post(task);
+      const sameColumnTasks = tasks.filter((t) => t.status === task.status);
+      const maxOrder =
+        sameColumnTasks.length > 0
+          ? Math.max(...sameColumnTasks.map((t) => t.order || 0))
+          : 0;
+
+      const newTask = await api.post({ ...task, order: maxOrder + 1 });
       setTasks((prev) => [...prev, newTask]);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const updateTaskStatus = useCallback(async (id, status) => {
-    // Optimistic UI update
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
+  const updateTaskStatus = useCallback(async (id, status, order) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, status, order } : t))
+    );
 
     try {
-      await api.update(id, { status });
+      await api.update(id, { status, order });
     } catch (err) {
       console.error(err);
-      // Revert UI if API fails
-      setTasks((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, status: t.status } : t))
-      );
     }
   }, []);
 
@@ -80,12 +58,14 @@ function App() {
         <TaskForm onClose={() => setShowForm(false)} onSubmit={addTask} />
       )}
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {columns.map((col) => (
           <Column
             key={col}
             title={col}
-            tasks={tasks.filter((task) => task.status === col)}
+            tasks={tasks
+              .filter((task) => task.status === col)
+              .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))}
             onDropTask={updateTaskStatus}
           />
         ))}
