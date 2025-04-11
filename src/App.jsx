@@ -5,8 +5,6 @@ import { api } from "./utils/api";
 
 const columns = ["To Do", "In Progress", "Done"];
 
-// --- API UTILS ---
-
 function App() {
   const [tasks, setTasks] = useState([]);
   const [showForm, setShowForm] = useState(false);
